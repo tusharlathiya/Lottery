@@ -1,7 +1,12 @@
-# truffle-init-default
+Truffle
 
-Default project for Truffle: example contracts, migrations and tests
 
-## Usage
+Rules:
 
-See the [Truffle documentation](http://truffleframework.com/docs/) for more info.
+1. Master get 20 % and Winner get 80% of the total lottery amount collected.
+2. Payment can happen in WEI.
+
+Need To Implement:
+
+1. Winner should not repeat consecutive.
+2. Lottery Can have fix time period.
