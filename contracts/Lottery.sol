@@ -1,10 +1,13 @@
 pragma solidity ^0.4.24;
 
+import './Random.sol';
+
 /**
  *  This contract is used as lottery scheme, master get 20% and winner get 80%.
  *
  */
 contract Lottery {
+    using Random for uint;
 
     // Status of Scheme
     enum Status { ACTIVE, EXPIRED }
@@ -52,18 +55,16 @@ contract Lottery {
         Scheme storage scheme = schemes[_schemeId];
         scheme.players[scheme.totalTokenSold++] = Player(msg.sender, msg.value);
         scheme.amount += (msg.value/1000000000000000000);
-
         emit playerAdded('player added', msg.sender, msg.value);
     }
 
     function declareWinner(uint _schemeId) public payable masterOnlyAccess(_schemeId) {
         require(schemes[_schemeId].status == Status.ACTIVE, 'Scheme must be active.');
 
-
         Scheme storage scheme = schemes[_schemeId];
         scheme.status = Status.EXPIRED;
 
-        scheme.winner = scheme.players[generateRandomWithin(scheme.totalTokenSold)].playerAddress;
+        scheme.winner = scheme.players[scheme.totalTokenSold.generateRandomWithin()].playerAddress;
 
         uint winningAmount = (scheme.amount * 80) / 100;
 
@@ -72,20 +73,5 @@ contract Lottery {
 
         scheme.winner.transfer(winningAmount * 1000000000000000000);
         scheme.master.transfer((scheme.amount-winningAmount) * 1000000000000000000);
-    }
-
-    function generateRandomWithin(uint limit) private view returns (uint) {
-        uint Q = block.difficulty / block.number;
-        uint R = block.difficulty % block.number;
-
-        uint M = (uint8(uint256(keccak256(abi.encodePacked(Q, R))) % 251));
-
-        uint random = ( M * (now % Q)) - ( R * (now / Q));
-
-        if(random <= 0) {
-            random = random + block.difficulty;
-        }
-
-        return (random % limit) == 0 ? limit - (R % limit) :random % limit;
     }
 }
