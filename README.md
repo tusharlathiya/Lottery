@@ -10,3 +10,4 @@ Need To Implement:
 
 1. Winner should not repeat consecutive.
 2. Lottery Can have fix time period.
+
