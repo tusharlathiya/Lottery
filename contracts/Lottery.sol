@@ -1,7 +1,8 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.19;
 
 /**
- *  This contract is used as lottery scheme, master get 20% and winner get 80%
+ *  This contract is used as lottery scheme, master get 20% and winner get 80%.
+ *
  */
 contract Lottery {
 
@@ -10,6 +11,7 @@ contract Lottery {
 
     uint schemeId = 1;
 
+    // All Scheme Details
     mapping (uint => Scheme) schemes;
 
     struct Scheme {
@@ -44,12 +46,12 @@ contract Lottery {
 
     function buyToken(uint _schemeId) public payable {
         require(schemes[_schemeId].status == Status.ACTIVE, 'Scheme must be active.');
-        require(msg.value == 1 wei, 'Token Amount must be 1.');
+        require(msg.value == 1 ether, 'Token Amount must be 1.');
         require(schemes[_schemeId].amount <= schemes[_schemeId].maxAmount, 'Scheme capacity reached.');
 
         Scheme storage scheme = schemes[_schemeId];
         scheme.players[scheme.totalTokenSold++] = Player(msg.sender, msg.value);
-        scheme.amount += msg.value;
+        scheme.amount += (msg.value/1000000000000000000);
 
         emit playerAdded('player added', msg.sender, msg.value);
     }
@@ -57,8 +59,10 @@ contract Lottery {
     function declareWinner(uint _schemeId) public payable masterOnlyAccess(_schemeId) {
         require(schemes[_schemeId].status == Status.ACTIVE, 'Scheme must be active.');
 
+
         Scheme storage scheme = schemes[_schemeId];
         scheme.status = Status.EXPIRED;
+
         scheme.winner = scheme.players[generateRandomWithin(scheme.totalTokenSold)].playerAddress;
 
         uint winningAmount = (scheme.amount * 80) / 100;
@@ -66,19 +70,22 @@ contract Lottery {
         emit winnerDeclared('winner', scheme.winner);
         emit logInteger('Winning Amount', winningAmount);
 
-        scheme.winner.transfer(winningAmount);
-        scheme.master.transfer(scheme.amount-winningAmount);
+        scheme.winner.transfer(winningAmount * 1000000000000000000);
+        scheme.master.transfer((scheme.amount-winningAmount) * 1000000000000000000);
     }
 
     function generateRandomWithin(uint limit) private view returns (uint) {
         uint Q = block.difficulty / block.number;
         uint R = block.difficulty % block.number;
 
-        uint random = ( block.difficulty * (now % Q)) - ( R * (now / Q));
+        uint M = (uint8(uint256(keccak256(abi.encodePacked(Q, R))) % 251));
+
+        uint random = ( M * (now % Q)) - ( R * (now / Q));
 
         if(random <= 0) {
             random = random + block.difficulty;
         }
-         return random % limit;
+
+        return (random % limit) == 0 ? limit - (R % limit) :random % limit;
     }
 }
