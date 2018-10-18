@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.24;
 
 /**
  *  This contract is used as lottery scheme, master get 20% and winner get 80%.
