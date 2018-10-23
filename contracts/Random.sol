@@ -20,9 +20,8 @@ library Random {
         uint M = (uint8(uint256(keccak256(abi.encodePacked(Q, R))) % 251));
         uint random = ( M * (now % Q)) - ( R * (now / Q));
 
-        if(random <= 0) {
-            random = random + D;
-        }
+        if(random <= 0) random = random + D;
+
         return (random % limit) == 0 ? limit - (R % limit) : random % limit;
     }
 }
