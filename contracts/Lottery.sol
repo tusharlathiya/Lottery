@@ -7,7 +7,6 @@ import './Random.sol';
  *
  */
 contract Lottery {
-    using Random for uint;
 
     // Status of Scheme
     enum Status { ACTIVE, EXPIRED }
@@ -42,6 +41,7 @@ contract Lottery {
     }
 
     function generateScheme(uint maxAmount) public returns (uint _schemeId) {
+        require(int(maxAmount) > 0, 'Amount must be positive.');
         _schemeId          = schemeId++;
         schemes[_schemeId] = Scheme(msg.sender, 0x0, Status.ACTIVE, 0, maxAmount, 0);
         emit logInteger('Scheme generated', _schemeId);
@@ -64,7 +64,7 @@ contract Lottery {
         Scheme storage scheme = schemes[_schemeId];
         scheme.status = Status.EXPIRED;
 
-        scheme.winner = scheme.players[scheme.totalTokenSold.generateRandomWithin()].playerAddress;
+        scheme.winner = scheme.players[Random.generateRandomWithin(scheme.totalTokenSold)].playerAddress;
 
         uint winningAmount = (scheme.amount * 80) / 100;
 
